@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_todo">Add Todo</string>
+    <string name="app_name">To Do</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="no_todos">Press \'+\' to add a Todo!</string>
+    <string name="save">Save</string>
+    <string name="select_date_time">Select Date &amp; Time</string>
+    <string name="todo_description">Description (optional)</string>
+    <string name="todo_title">Title</string>
+</resources>

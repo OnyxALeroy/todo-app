@@ -1,0 +1,26 @@
+{
+    "logs": [
+        {
+            "outputFile": "fr.onyxleroy.to_do.app-mergeDebugResources-30:/values-fr-rFR/values-fr-rFR.xml",
+            "map": [
+                {
+                    "source": "/home/onyx/Documents/todo-app/app/src/main/res/values-fr-rFR/strings.xml",
+                    "from": {
+                        "startLines": "3,2,9,10,11,4,8,7,6,5",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "98,55,465,508,553,152,420,346,275,230",
+                        "endColumns": "53,42,42,44,41,77,44,73,70,44",
+                        "endOffsets": "147,93,503,548,590,225,460,415,341,270"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,11",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,109,152,195,240,282,360,405,479,550",
+                        "endColumns": "53,42,42,44,41,77,44,73,70,44",
+                        "endOffsets": "104,147,190,235,277,355,400,474,545,590"
+                    }
+                }
+            ]
+        }
+    ]
+}
