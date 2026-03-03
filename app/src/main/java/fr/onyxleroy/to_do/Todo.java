@@ -4,11 +4,41 @@ import java.io.Serializable;
 import java.util.UUID;
 
 public class Todo implements Serializable {
+
+    public enum RepeatType {
+        NONE(0),
+        HOURLY(1),
+        DAILY(2),
+        WEEKLY(3),
+        MONTHLY(4),
+        YEARLY(5);
+
+        private final int value;
+
+        RepeatType(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static RepeatType fromValue(int value) {
+            for (RepeatType type : values()) {
+                if (type.value == value) {
+                    return type;
+                }
+            }
+            return NONE;
+        }
+    }
+
     private String id = UUID.randomUUID().toString();
     private String title;
     private String description;
     private long dateTimeMillis;
     private boolean completed = false;
+    private RepeatType repeatType = RepeatType.NONE;
 
     public Todo() {
     }
@@ -19,6 +49,16 @@ public class Todo implements Serializable {
         this.description = description;
         this.dateTimeMillis = dateTimeMillis;
         this.completed = false;
+        this.repeatType = RepeatType.NONE;
+    }
+
+    public Todo(String title, String description, long dateTimeMillis, RepeatType repeatType) {
+        this.id = UUID.randomUUID().toString();
+        this.title = title;
+        this.description = description;
+        this.dateTimeMillis = dateTimeMillis;
+        this.completed = false;
+        this.repeatType = repeatType;
     }
 
     public String getId() {
@@ -59,5 +99,17 @@ public class Todo implements Serializable {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public RepeatType getRepeatType() {
+        return repeatType;
+    }
+
+    public void setRepeatType(RepeatType repeatType) {
+        this.repeatType = repeatType;
+    }
+
+    public boolean isRepeating() {
+        return repeatType != null && repeatType != RepeatType.NONE;
     }
 }

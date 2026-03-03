@@ -6,8 +6,11 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -22,6 +25,7 @@ public class AddTodoDialog {
     private final OnTodoSavedListener listener;
     private Todo existingTodo;
     private final Calendar selectedDateTime;
+    private Todo.RepeatType selectedRepeatType = Todo.RepeatType.NONE;
 
     public interface OnTodoSavedListener {
         void onTodoSaved(Todo todo);
@@ -40,6 +44,9 @@ public class AddTodoDialog {
         this.selectedDateTime = Calendar.getInstance();
         if (existingTodo != null) {
             selectedDateTime.setTimeInMillis(existingTodo.getDateTimeMillis());
+            this.selectedRepeatType = existingTodo.getRepeatType() != null 
+                    ? existingTodo.getRepeatType() 
+                    : Todo.RepeatType.NONE;
         }
     }
 
@@ -49,11 +56,43 @@ public class AddTodoDialog {
         EditText editTextTitle = dialogView.findViewById(R.id.editTextTitle);
         EditText editTextDescription = dialogView.findViewById(R.id.editTextDescription);
         Button buttonSelectDateTime = dialogView.findViewById(R.id.buttonSelectDateTime);
+        Spinner spinnerRepeat = dialogView.findViewById(R.id.spinnerRepeat);
 
-        // Pre-fill if editing
+        String[] repeatOptions = new String[]{
+                context.getString(R.string.repeat_none),
+                context.getString(R.string.repeat_hourly),
+                context.getString(R.string.repeat_daily),
+                context.getString(R.string.repeat_weekly),
+                context.getString(R.string.repeat_monthly),
+                context.getString(R.string.repeat_yearly)
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                context,
+                android.R.layout.simple_spinner_item,
+                repeatOptions
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRepeat.setAdapter(adapter);
+
+        spinnerRepeat.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedRepeatType = Todo.RepeatType.fromValue(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedRepeatType = Todo.RepeatType.NONE;
+            }
+        });
+
         if (existingTodo != null) {
             editTextTitle.setText(existingTodo.getTitle());
             editTextDescription.setText(existingTodo.getDescription());
+            spinnerRepeat.setSelection(existingTodo.getRepeatType() != null 
+                    ? existingTodo.getRepeatType().getValue() 
+                    : 0);
         }
 
         updateDateTimeButtonText(buttonSelectDateTime);
@@ -61,7 +100,7 @@ public class AddTodoDialog {
         buttonSelectDateTime.setOnClickListener(v -> showDateTimePicker(buttonSelectDateTime));
 
         AlertDialog dialog = new AlertDialog.Builder(context)
-                .setTitle(existingTodo == null ? "Add Todo" : "Edit Todo")
+                .setTitle(existingTodo == null ? R.string.add_todo : R.string.edit)
                 .setView(dialogView)
                 .setPositiveButton(R.string.save, null)
                 .setNegativeButton(R.string.cancel, (d, which) -> d.dismiss())
@@ -85,14 +124,13 @@ public class AddTodoDialog {
 
                 Todo todo;
                 if (existingTodo != null) {
-                    // Edit existing todo
                     todo = existingTodo;
                     todo.setTitle(title);
                     todo.setDescription(description);
                     todo.setDateTimeMillis(selectedDateTime.getTimeInMillis());
+                    todo.setRepeatType(selectedRepeatType);
                 } else {
-                    // Create new todo
-                    todo = new Todo(title, description, selectedDateTime.getTimeInMillis());
+                    todo = new Todo(title, description, selectedDateTime.getTimeInMillis(), selectedRepeatType);
                 }
 
                 if (listener != null) {
@@ -114,7 +152,6 @@ public class AddTodoDialog {
                     selectedDateTime.set(Calendar.MONTH, month);
                     selectedDateTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-                    // After date is selected, show time picker
                     TimePickerDialog timePickerDialog = new TimePickerDialog(
                             context,
                             (timeView, hourOfDay, minute) -> {

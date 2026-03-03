@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import java.util.Calendar;
+
 import fr.onyxleroy.to_do.Todo;
 import fr.onyxleroy.to_do.receivers.NotificationReceiver;
 
@@ -18,6 +20,7 @@ public class NotificationHelper {
         intent.putExtra("todo_id", todo.getId());
         intent.putExtra("title", todo.getTitle());
         intent.putExtra("description", todo.getDescription());
+        intent.putExtra("repeat_type", todo.getRepeatType() != null ? todo.getRepeatType().getValue() : 0);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -27,27 +30,71 @@ public class NotificationHelper {
         );
 
         if (alarmManager != null) {
-            // Cancel any existing alarm for this todo
             alarmManager.cancel(pendingIntent);
 
-            // Only schedule if the time is in the future
-            if (todo.getDateTimeMillis() > System.currentTimeMillis()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
-                        alarmManager.setExactAndAllowWhileIdle(
-                                AlarmManager.RTC_WAKEUP,
-                                todo.getDateTimeMillis(),
-                                pendingIntent
-                        );
-                    }
-                } else {
-                    alarmManager.setExactAndAllowWhileIdle(
-                            AlarmManager.RTC_WAKEUP,
-                            todo.getDateTimeMillis(),
-                            pendingIntent
-                    );
-                }
+            long triggerTime = todo.getDateTimeMillis();
+            if (triggerTime > System.currentTimeMillis()) {
+                setExactAlarm(alarmManager, triggerTime, pendingIntent);
             }
+        }
+    }
+
+    public static long getNextOccurrence(long currentTimeMillis, Todo.RepeatType repeatType) {
+        if (repeatType == null || repeatType == Todo.RepeatType.NONE) {
+            return 0;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(currentTimeMillis);
+
+        switch (repeatType) {
+            case HOURLY:
+                calendar.add(Calendar.HOUR_OF_DAY, 1);
+                break;
+            case DAILY:
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+                break;
+            case WEEKLY:
+                calendar.add(Calendar.WEEK_OF_YEAR, 1);
+                break;
+            case MONTHLY:
+                calendar.add(Calendar.MONTH, 1);
+                break;
+            case YEARLY:
+                calendar.add(Calendar.YEAR, 1);
+                break;
+            default:
+                return 0;
+        }
+
+        return calendar.getTimeInMillis();
+    }
+
+    public static void rescheduleNotification(Context context, Todo todo) {
+        if (todo.isRepeating()) {
+            long nextOccurrence = getNextOccurrence(todo.getDateTimeMillis(), todo.getRepeatType());
+            if (nextOccurrence > 0) {
+                todo.setDateTimeMillis(nextOccurrence);
+                scheduleNotification(context, todo);
+            }
+        }
+    }
+
+    private static void setExactAlarm(AlarmManager alarmManager, long triggerTime, PendingIntent pendingIntent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerTime,
+                        pendingIntent
+                );
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+            );
         }
     }
 

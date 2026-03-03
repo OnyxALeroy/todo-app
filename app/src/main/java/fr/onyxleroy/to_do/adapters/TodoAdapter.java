@@ -58,6 +58,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         private TextView textViewTitle;
         private TextView textViewDescription;
         private TextView textViewDateTime;
+        private TextView textViewRepeat;
         private Button buttonEdit;
         private Button buttonDelete;
 
@@ -66,6 +67,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
             textViewTitle = itemView.findViewById(R.id.textViewTitle);
             textViewDescription = itemView.findViewById(R.id.textViewDescription);
             textViewDateTime = itemView.findViewById(R.id.textViewDateTime);
+            textViewRepeat = itemView.findViewById(R.id.textViewRepeat);
             buttonEdit = itemView.findViewById(R.id.buttonEdit);
             buttonDelete = itemView.findViewById(R.id.buttonDelete);
         }
@@ -84,6 +86,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
             String dateTimeStr = sdf.format(new Date(todo.getDateTimeMillis()));
             textViewDateTime.setText(dateTimeStr);
 
+            Todo.RepeatType repeatType = todo.getRepeatType();
+            if (repeatType != null && repeatType != Todo.RepeatType.NONE) {
+                String repeatText = getRepeatText(repeatType);
+                textViewRepeat.setText(repeatText);
+                textViewRepeat.setVisibility(View.VISIBLE);
+            } else {
+                textViewRepeat.setVisibility(View.GONE);
+            }
+
             buttonEdit.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onEditClick(todo, position);
@@ -95,6 +106,23 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
                     listener.onDeleteClick(todo, position);
                 }
             });
+        }
+
+        private String getRepeatText(Todo.RepeatType repeatType) {
+            switch (repeatType) {
+                case HOURLY:
+                    return itemView.getContext().getString(R.string.repeat_hourly);
+                case DAILY:
+                    return itemView.getContext().getString(R.string.repeat_daily);
+                case WEEKLY:
+                    return itemView.getContext().getString(R.string.repeat_weekly);
+                case MONTHLY:
+                    return itemView.getContext().getString(R.string.repeat_monthly);
+                case YEARLY:
+                    return itemView.getContext().getString(R.string.repeat_yearly);
+                default:
+                    return "";
+            }
         }
     }
 }

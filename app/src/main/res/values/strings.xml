@@ -10,4 +10,11 @@
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
+    <string name="repeat">Repeat</string>
+    <string name="repeat_none">Do not repeat</string>
+    <string name="repeat_hourly">Every hour</string>
+    <string name="repeat_daily">Every day</string>
+    <string name="repeat_weekly">Every week</string>
+    <string name="repeat_monthly">Every month</string>
+    <string name="repeat_yearly">Every year</string>
 </resources>

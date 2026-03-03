@@ -10,7 +10,12 @@ import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
+import java.util.List;
+
 import fr.onyxleroy.to_do.MainActivity;
+import fr.onyxleroy.to_do.Todo;
+import fr.onyxleroy.to_do.utils.NotificationHelper;
+import fr.onyxleroy.to_do.utils.TodoStorageManager;
 
 public class NotificationReceiver extends BroadcastReceiver {
     private static final String CHANNEL_ID = "todo_notifications";
@@ -21,9 +26,35 @@ public class NotificationReceiver extends BroadcastReceiver {
         String todoId = intent.getStringExtra("todo_id");
         String title = intent.getStringExtra("title");
         String description = intent.getStringExtra("description");
+        int repeatTypeValue = intent.getIntExtra("repeat_type", 0);
+        Todo.RepeatType repeatType = Todo.RepeatType.fromValue(repeatTypeValue);
 
         createNotificationChannel(context);
         showNotification(context, todoId, title, description);
+
+        if (repeatType != null && repeatType != Todo.RepeatType.NONE) {
+            rescheduleRecurringTodo(context, todoId, repeatType);
+        }
+    }
+
+    private void rescheduleRecurringTodo(Context context, String todoId, Todo.RepeatType repeatType) {
+        List<Todo> todos = TodoStorageManager.loadTodos(context);
+        if (todos != null) {
+            for (Todo todo : todos) {
+                if (todo.getId().equals(todoId)) {
+                    long nextOccurrence = NotificationHelper.getNextOccurrence(
+                            todo.getDateTimeMillis(), 
+                            repeatType
+                    );
+                    if (nextOccurrence > 0) {
+                        todo.setDateTimeMillis(nextOccurrence);
+                        TodoStorageManager.saveTodos(context, todos);
+                        NotificationHelper.scheduleNotification(context, todo);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     private void createNotificationChannel(Context context) {

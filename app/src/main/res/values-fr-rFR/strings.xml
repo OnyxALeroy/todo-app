@@ -10,4 +10,11 @@
     <string name="cancel">Annuler</string>
     <string name="delete">Supprimer</string>
     <string name="edit">Modifier</string>
+    <string name="repeat">Répéter</string>
+    <string name="repeat_none">Ne pas répéter</string>
+    <string name="repeat_hourly">Chaque heure</string>
+    <string name="repeat_daily">Chaque jour</string>
+    <string name="repeat_weekly">Chaque semaine</string>
+    <string name="repeat_monthly">Chaque mois</string>
+    <string name="repeat_yearly">Chaque année</string>
 </resources>
