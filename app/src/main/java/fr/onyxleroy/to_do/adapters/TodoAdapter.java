@@ -1,9 +1,12 @@
 package fr.onyxleroy.to_do.adapters;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 
 import fr.onyxleroy.to_do.R;
+import fr.onyxleroy.to_do.Tag;
 import fr.onyxleroy.to_do.Todo;
 
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder> {
@@ -59,6 +63,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         private TextView textViewDescription;
         private TextView textViewDateTime;
         private TextView textViewRepeat;
+        private LinearLayout tagsContainer;
         private Button buttonEdit;
         private Button buttonDelete;
 
@@ -68,6 +73,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
             textViewDescription = itemView.findViewById(R.id.textViewDescription);
             textViewDateTime = itemView.findViewById(R.id.textViewDateTime);
             textViewRepeat = itemView.findViewById(R.id.textViewRepeat);
+            tagsContainer = itemView.findViewById(R.id.tagsContainer);
             buttonEdit = itemView.findViewById(R.id.buttonEdit);
             buttonDelete = itemView.findViewById(R.id.buttonDelete);
         }
@@ -93,6 +99,18 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
                 textViewRepeat.setVisibility(View.VISIBLE);
             } else {
                 textViewRepeat.setVisibility(View.GONE);
+            }
+
+            List<Tag> tags = todo.getTags();
+            if (tags != null && !tags.isEmpty()) {
+                tagsContainer.setVisibility(View.VISIBLE);
+                tagsContainer.removeAllViews();
+                for (Tag tag : tags) {
+                    View tagView = createTagView(tag);
+                    tagsContainer.addView(tagView);
+                }
+            } else {
+                tagsContainer.setVisibility(View.GONE);
             }
 
             buttonEdit.setOnClickListener(v -> {
@@ -123,6 +141,32 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
                 default:
                     return "";
             }
+        }
+
+        private View createTagView(Tag tag) {
+            int padding = (int) (4 * itemView.getResources().getDisplayMetrics().density);
+            int textPadding = (int) (2 * itemView.getResources().getDisplayMetrics().density);
+
+            TextView tagText = new TextView(itemView.getContext());
+            tagText.setText(tag.getName());
+            tagText.setTextSize(10);
+            tagText.setPadding(textPadding * 2, padding, textPadding * 2, padding);
+
+            GradientDrawable background = new GradientDrawable();
+            background.setShape(GradientDrawable.RECTANGLE);
+            background.setCornerRadius(12 * itemView.getResources().getDisplayMetrics().density);
+            background.setColor(tag.getColor());
+            tagText.setBackground(background);
+            tagText.setTextColor(Color.WHITE);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(0, 0, (int) (4 * itemView.getResources().getDisplayMetrics().density), 0);
+            tagText.setLayoutParams(params);
+
+            return tagText;
         }
     }
 }

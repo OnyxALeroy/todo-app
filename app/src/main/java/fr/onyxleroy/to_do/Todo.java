@@ -1,6 +1,8 @@
 package fr.onyxleroy.to_do;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class Todo implements Serializable {
@@ -39,6 +41,7 @@ public class Todo implements Serializable {
     private long dateTimeMillis;
     private boolean completed = false;
     private RepeatType repeatType = RepeatType.NONE;
+    private List<Tag> tags = new ArrayList<>();
 
     public Todo() {
     }
@@ -107,6 +110,14 @@ public class Todo implements Serializable {
 
     public void setRepeatType(RepeatType repeatType) {
         this.repeatType = repeatType;
+    }
+
+    public List<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags != null ? tags : new ArrayList<>();
     }
 
     public boolean isRepeating() {

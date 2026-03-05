@@ -17,4 +17,13 @@
     <string name="repeat_weekly">Every week</string>
     <string name="repeat_monthly">Every month</string>
     <string name="repeat_yearly">Every year</string>
+    <string name="tags">Tags</string>
+    <string name="add_tag">Add Tag</string>
+    <string name="tag_name">Tag name</string>
+    <string name="tag_color">Color</string>
+    <string name="manage_tags">Manage Tags</string>
+    <string name="create_new_tag">Create new tag</string>
+    <string name="no_tags">No tags</string>
+    <string name="tag_created">Tag created</string>
+    <string name="please_enter_tag_name">Please enter a tag name</string>
 </resources>
