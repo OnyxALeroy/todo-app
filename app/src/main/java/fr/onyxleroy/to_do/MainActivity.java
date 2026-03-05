@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import fr.onyxleroy.to_do.adapters.TodoAdapter;
@@ -65,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         if (todos == null) {
             todos = new ArrayList<>();
         }
+        Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         adapter.updateTodos(todos);
         updateEmptyState();
     }
@@ -100,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         if (!found) {
             todos.add(todo);
         }
+        Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         adapter.updateTodos(todos);
         saveTodos();
         updateEmptyState();
@@ -116,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     @Override
     public void onDeleteClick(Todo todo, int position) {
         todos.remove(position);
+        Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         adapter.updateTodos(todos);
         saveTodos();
         updateEmptyState();
