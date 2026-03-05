@@ -1,37 +1,53 @@
 package fr.onyxleroy.to_do;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import fr.onyxleroy.to_do.adapters.TagAdapter;
 import fr.onyxleroy.to_do.adapters.TodoAdapter;
+import fr.onyxleroy.to_do.dialogs.AddTagDialog;
 import fr.onyxleroy.to_do.dialogs.AddTodoDialog;
 import fr.onyxleroy.to_do.utils.NotificationHelper;
+import fr.onyxleroy.to_do.utils.TagStorageManager;
 import fr.onyxleroy.to_do.utils.TodoStorageManager;
 
-public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTodoClickListener {
+public class MainActivity extends AppCompatActivity implements 
+        TodoAdapter.OnTodoClickListener, 
+        TagAdapter.OnTagClickListener,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private RecyclerView recyclerViewTodos;
+    private RecyclerView recyclerViewTags;
     private TextView textViewEmpty;
+    private TextView textViewEmptyTags;
     private List<Todo> todos;
-    private TodoAdapter adapter;
+    private List<Tag> tags;
+    private TodoAdapter todoAdapter;
+    private TagAdapter tagAdapter;
+    private int currentView = 0;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -42,16 +58,37 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        androidx.drawerlayout.widget.DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
+        
+        ImageButton buttonMenu = findViewById(R.id.buttonMenu);
+        buttonMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        NavigationView navigationView = findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(this);
+
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
+        recyclerViewTags = findViewById(R.id.recyclerViewTags);
         textViewEmpty = findViewById(R.id.textViewEmpty);
-        FloatingActionButton fabAddTodo = findViewById(R.id.fabAddTodo);
+        textViewEmptyTags = findViewById(R.id.textViewEmptyTags);
+        FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
 
         todos = new ArrayList<>();
-        adapter = new TodoAdapter(todos, this);
+        todoAdapter = new TodoAdapter(todos, this);
         recyclerViewTodos.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewTodos.setAdapter(adapter);
+        recyclerViewTodos.setAdapter(todoAdapter);
 
-        fabAddTodo.setOnClickListener(v -> showAddTodoDialog());
+        tags = new ArrayList<>();
+        tagAdapter = new TagAdapter(this);
+        recyclerViewTags.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewTags.setAdapter(tagAdapter);
+
+        fabAdd.setOnClickListener(v -> {
+            if (currentView == 0) {
+                showAddTodoDialog();
+            } else {
+                showAddTagDialog();
+            }
+        });
 
         requestNotificationPermission();
     }
@@ -60,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     protected void onResume() {
         super.onResume();
         loadTodos();
+        loadTags();
+        updateView();
     }
 
     private void loadTodos() {
@@ -68,12 +107,26 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             todos = new ArrayList<>();
         }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
-        adapter.updateTodos(todos);
+        todoAdapter.updateTodos(todos);
         updateEmptyState();
+    }
+
+    private void loadTags() {
+        tags = TagStorageManager.loadTags(this);
+        if (tags == null) {
+            tags = new ArrayList<>();
+        }
+        Collections.sort(tags, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        tagAdapter.updateTags(tags);
+        updateEmptyTagsState();
     }
 
     private void saveTodos() {
         TodoStorageManager.saveTodos(this, todos);
+    }
+
+    private void saveTags() {
+        TagStorageManager.saveTags(this, tags);
     }
 
     private void updateEmptyState() {
@@ -86,8 +139,53 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         }
     }
 
+    private void updateEmptyTagsState() {
+        if (tags.isEmpty()) {
+            textViewEmptyTags.setVisibility(View.VISIBLE);
+            recyclerViewTags.setVisibility(View.GONE);
+        } else {
+            textViewEmptyTags.setVisibility(View.GONE);
+            recyclerViewTags.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateView() {
+        if (currentView == 0) {
+            recyclerViewTodos.setVisibility(View.VISIBLE);
+            textViewEmpty.setVisibility(todos.isEmpty() ? View.VISIBLE : View.GONE);
+            recyclerViewTags.setVisibility(View.GONE);
+            textViewEmptyTags.setVisibility(View.GONE);
+        } else {
+            recyclerViewTodos.setVisibility(View.GONE);
+            textViewEmpty.setVisibility(View.GONE);
+            recyclerViewTags.setVisibility(View.VISIBLE);
+            textViewEmptyTags.setVisibility(tags.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(android.view.MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.nav_home) {
+            currentView = 0;
+        } else if (itemId == R.id.nav_tags) {
+            currentView = 1;
+            loadTags();
+        }
+        updateView();
+        
+        androidx.drawerlayout.widget.DrawerLayout drawer = findViewById(R.id.drawerLayout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
     private void showAddTodoDialog() {
         AddTodoDialog dialog = new AddTodoDialog(this, this::onTodoSaved);
+        dialog.show();
+    }
+
+    private void showAddTagDialog() {
+        AddTagDialog dialog = new AddTagDialog(this, this::onTagSaved);
         dialog.show();
     }
 
@@ -104,11 +202,29 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
             todos.add(todo);
         }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
-        adapter.updateTodos(todos);
+        todoAdapter.updateTodos(todos);
         saveTodos();
         updateEmptyState();
 
         NotificationHelper.scheduleNotification(this, todo);
+    }
+
+    private void onTagSaved(Tag tag) {
+        boolean found = false;
+        for (int i = 0; i < tags.size(); i++) {
+            if (tags.get(i).getId().equals(tag.getId())) {
+                tags.set(i, tag);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            tags.add(tag);
+        }
+        Collections.sort(tags, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        tagAdapter.updateTags(tags);
+        saveTags();
+        updateEmptyTagsState();
     }
 
     @Override
@@ -121,11 +237,32 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     public void onDeleteClick(Todo todo, int position) {
         todos.remove(position);
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
-        adapter.updateTodos(todos);
+        todoAdapter.updateTodos(todos);
         saveTodos();
         updateEmptyState();
 
         NotificationHelper.cancelNotification(this, todo.getId());
+    }
+
+    @Override
+    public void onEditClick(Tag tag, int position) {
+        AddTagDialog dialog = new AddTagDialog(this, this::onTagSaved, tag);
+        dialog.show();
+    }
+
+    @Override
+    public void onDeleteClick(Tag tag, int position) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_tag)
+                .setMessage(R.string.confirm_delete_tag)
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    tags.remove(position);
+                    tagAdapter.updateTags(tags);
+                    saveTags();
+                    updateEmptyTagsState();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private void requestNotificationPermission() {
