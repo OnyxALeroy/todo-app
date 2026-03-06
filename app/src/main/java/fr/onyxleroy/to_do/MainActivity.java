@@ -150,6 +150,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         loadTodos();
         loadTags();
+        syncTagsWithTodos();
+        todoAdapter.updateTodos(todos);
         updateView();
     }
 
@@ -159,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements
             todos = new ArrayList<>();
         }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
-        todoAdapter.updateTodos(todos);
         updateEmptyState();
     }
 
@@ -171,6 +172,23 @@ public class MainActivity extends AppCompatActivity implements
         Collections.sort(tags, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         tagAdapter.updateTags(tags);
         updateEmptyTagsState();
+    }
+
+    private void syncTagsWithTodos() {
+        for (Todo todo : todos) {
+            if (todo.getTags() != null) {
+                for (int i = 0; i < todo.getTags().size(); i++) {
+                    Tag todoTag = todo.getTags().get(i);
+                    for (Tag masterTag : tags) {
+                        if (masterTag.getId().equals(todoTag.getId())) {
+                            todoTag.setName(masterTag.getName());
+                            todoTag.setColor(masterTag.getColor());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void saveTodos() {
@@ -276,6 +294,8 @@ public class MainActivity extends AppCompatActivity implements
         Collections.sort(tags, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         tagAdapter.updateTags(tags);
         saveTags();
+        syncTagsWithTodos();
+        todoAdapter.updateTodos(todos);
         updateEmptyTagsState();
     }
 
