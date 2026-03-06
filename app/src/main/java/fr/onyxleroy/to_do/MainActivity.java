@@ -111,9 +111,6 @@ public class MainActivity extends AppCompatActivity implements
         };
         
         mainContent.setOnTouchListener(swipeListener);
-        
-        recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
-        recyclerViewTodos.setOnTouchListener(swipeListener);
 
         NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
@@ -133,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements
         tagAdapter = new TagAdapter(this);
         recyclerViewTags.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTags.setAdapter(tagAdapter);
+        
+        recyclerViewTodos.setOnTouchListener(swipeListener);
+        recyclerViewTags.setOnTouchListener(swipeListener);
 
         fabAdd.setOnClickListener(v -> {
             if (currentView == 0) {
