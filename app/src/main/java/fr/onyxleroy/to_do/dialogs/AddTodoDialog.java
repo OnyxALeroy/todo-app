@@ -169,6 +169,9 @@ public class AddTodoDialog {
         });
 
         dialog.show();
+        
+        editTextTitle.clearFocus();
+        editTextDescription.clearFocus();
     }
 
     private void showDateTimePicker(Button button) {

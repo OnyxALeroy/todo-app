@@ -35,6 +35,13 @@ public class NotificationHelper {
             long triggerTime = todo.getDateTimeMillis();
             if (triggerTime > System.currentTimeMillis()) {
                 setExactAlarm(alarmManager, triggerTime, pendingIntent);
+            } else if (todo.isRepeating()) {
+                long now = System.currentTimeMillis();
+                while (triggerTime <= now) {
+                    triggerTime = getNextOccurrence(triggerTime, todo.getRepeatType());
+                }
+                todo.setDateTimeMillis(triggerTime);
+                setExactAlarm(alarmManager, triggerTime, pendingIntent);
             }
         }
     }
