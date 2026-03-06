@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -15,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -58,10 +61,59 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        androidx.drawerlayout.widget.DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
+        DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
         
         ImageButton buttonMenu = findViewById(R.id.buttonMenu);
         buttonMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        View mainContent = findViewById(R.id.mainContent);
+        
+        final int[] swipeStarted = {0};
+        final float[] startX = {0};
+        
+        View.OnTouchListener swipeListener = (v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                startX[0] = event.getX();
+                swipeStarted[0] = 0;
+                return false;
+            }
+            
+            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                float diffX = event.getX() - startX[0];
+                
+                if (swipeStarted[0] == 0 && Math.abs(diffX) > 50) {
+                    swipeStarted[0] = 1;
+                }
+                
+                if (swipeStarted[0] == 1) {
+                    float screenWidth = getResources().getDisplayMetrics().widthPixels;
+                    float swipeThreshold = screenWidth / 4.0f;
+                    
+                    if (diffX > swipeThreshold) {
+                        if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                            drawerLayout.openDrawer(GravityCompat.START);
+                        }
+                        swipeStarted[0] = 0;
+                    } else if (diffX < -swipeThreshold) {
+                        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                            drawerLayout.closeDrawer(GravityCompat.START);
+                        }
+                        swipeStarted[0] = 0;
+                    }
+                }
+                return false;
+            }
+            
+            if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                swipeStarted[0] = 0;
+            }
+            return false;
+        };
+        
+        mainContent.setOnTouchListener(swipeListener);
+        
+        recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
+        recyclerViewTodos.setOnTouchListener(swipeListener);
 
         NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
