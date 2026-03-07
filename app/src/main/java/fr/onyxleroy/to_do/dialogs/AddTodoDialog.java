@@ -3,6 +3,7 @@ package fr.onyxleroy.to_do.dialogs;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -35,6 +36,7 @@ public class AddTodoDialog {
     private Todo.RepeatType selectedRepeatType = Todo.RepeatType.NONE;
     private List<Tag> availableTags;
     private List<Tag> selectedTags = new ArrayList<>();
+    private AlertDialog dialog;
 
     public interface OnTodoSavedListener {
         void onTodoSaved(Todo todo);
@@ -124,7 +126,7 @@ public class AddTodoDialog {
 
         buttonAddTag.setOnClickListener(v -> showTagSelectionDialog(tagsContainer));
 
-        AlertDialog dialog = new AlertDialog.Builder(context)
+        dialog = new AlertDialog.Builder(context)
                 .setTitle(existingTodo == null ? R.string.add_todo : R.string.edit)
                 .setView(dialogView)
                 .setPositiveButton(R.string.save, null)
@@ -189,6 +191,7 @@ public class AddTodoDialog {
                                 selectedDateTime.set(Calendar.MINUTE, minute);
                                 selectedDateTime.set(Calendar.SECOND, 0);
                                 updateDateTimeButtonText(button);
+                                hideKeyboard();
                             },
                             selectedDateTime.get(Calendar.HOUR_OF_DAY),
                             selectedDateTime.get(Calendar.MINUTE),
@@ -303,5 +306,11 @@ public class AddTodoDialog {
             updateTagsContainer(tagsContainer);
         });
         addTagDialog.show();
+    }
+
+    private void hideKeyboard() {
+        if (dialog == null || dialog.getWindow() == null) return;
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(dialog.getWindow().getDecorView().getWindowToken(), 0);
     }
 }
