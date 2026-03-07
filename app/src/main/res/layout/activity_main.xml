@@ -76,10 +76,25 @@
                 android:padding="16dp"
                 android:visibility="gone">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/language"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/darker_gray" />
+
+                <Spinner
+                    android:id="@+id/spinnerLanguage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:padding="8dp" />
+
                 <Button
                     android:id="@+id/buttonClearData"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
                     android:text="@string/clear_data" />
 
             </LinearLayout>

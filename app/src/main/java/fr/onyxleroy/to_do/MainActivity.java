@@ -2,15 +2,20 @@ package fr.onyxleroy.to_do;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +67,11 @@ public class MainActivity extends AppCompatActivity implements
             });
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -83,6 +93,30 @@ public class MainActivity extends AppCompatActivity implements
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
 
         buttonClearData.setOnClickListener(v -> showClearDataDialog());
+
+        Spinner spinnerLanguage = findViewById(R.id.spinnerLanguage);
+        String[] languages = {"English", "Français"};
+        ArrayAdapter<String> languageAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, languages);
+        languageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLanguage.setAdapter(languageAdapter);
+
+        String currentLang = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("language", "en");
+        spinnerLanguage.setSelection(currentLang.equals("fr") ? 1 : 0);
+
+        spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedLang = position == 1 ? "fr" : "en";
+                String savedLang = getSharedPreferences("app_prefs", MODE_PRIVATE).getString("language", "en");
+                if (!selectedLang.equals(savedLang)) {
+                    getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("language", selectedLang).apply();
+                    Toast.makeText(MainActivity.this, R.string.language_changed, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         todos = new ArrayList<>();
         todoAdapter = new TodoAdapter(todos, this);

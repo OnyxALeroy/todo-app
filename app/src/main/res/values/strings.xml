@@ -34,4 +34,6 @@
     <string name="clear_data">Clear All Data</string>
     <string name="confirm_clear_data">Are you sure you want to delete all todos and tags? This cannot be undone.</string>
     <string name="data_cleared">All data has been cleared</string>
+    <string name="language">Language</string>
+    <string name="language_changed">Language changed. Please restart the app.</string>
 </resources>
