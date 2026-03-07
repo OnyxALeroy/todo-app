@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -78,7 +79,10 @@ public class MainActivity extends AppCompatActivity implements
         settingsContainer = findViewById(R.id.settingsContainer);
         textViewEmpty = findViewById(R.id.textViewEmpty);
         textViewEmptyTags = findViewById(R.id.textViewEmptyTags);
+        Button buttonClearData = findViewById(R.id.buttonClearData);
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
+
+        buttonClearData.setOnClickListener(v -> showClearDataDialog());
 
         todos = new ArrayList<>();
         todoAdapter = new TodoAdapter(todos, this);
@@ -310,6 +314,26 @@ public class MainActivity extends AppCompatActivity implements
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
+    }
+
+    private void showClearDataDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.clear_data)
+                .setMessage(R.string.confirm_clear_data)
+                .setPositiveButton(R.string.delete, (dialog, which) -> clearAllData())
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void clearAllData() {
+        todos.clear();
+        tags.clear();
+        todoAdapter.updateTodos(todos);
+        tagAdapter.updateTags(tags);
+        saveTodos();
+        saveTags();
+        updateView();
+        Toast.makeText(this, R.string.data_cleared, Toast.LENGTH_SHORT).show();
     }
 
     @Override
