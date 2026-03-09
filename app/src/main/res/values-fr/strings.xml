@@ -27,7 +27,9 @@
     <string name="tag_created">Étiquette créée</string>
     <string name="please_enter_tag_name">Veuillez entrer un nom d\'étiquette</string>
     <string name="home">Accueil</string>
+    <string name="by_tag">Par étiquette</string>
     <string name="settings">Paramètres</string>
+    <string name="untagged">Sans étiquette</string>
     <string name="delete_tag">Supprimer l\'étiquette</string>
     <string name="edit_tag">Modifier l\'étiquette</string>
     <string name="confirm_delete_tag">Êtes-vous sûr de vouloir supprimer cette étiquette ?</string>

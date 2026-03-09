@@ -38,6 +38,7 @@ import java.util.List;
 
 import fr.onyxleroy.to_do.adapters.TagAdapter;
 import fr.onyxleroy.to_do.adapters.TodoAdapter;
+import fr.onyxleroy.to_do.adapters.StatisticsAdapter;
 import fr.onyxleroy.to_do.dialogs.AddTagDialog;
 import fr.onyxleroy.to_do.dialogs.AddTodoDialog;
 import fr.onyxleroy.to_do.utils.NotificationHelper;
@@ -51,13 +52,16 @@ public class MainActivity extends AppCompatActivity implements
 
     private RecyclerView recyclerViewTodos;
     private RecyclerView recyclerViewTags;
+    private RecyclerView recyclerViewStatistics;
     private LinearLayout settingsContainer;
+    private LinearLayout statisticsContainer;
     private TextView textViewEmpty;
     private TextView textViewEmptyTags;
     private List<Todo> todos;
     private List<Tag> tags;
     private TodoAdapter todoAdapter;
     private TagAdapter tagAdapter;
+    private StatisticsAdapter statisticsAdapter;
     private int currentView = 0;
     private final int[] swipeStarted = {0};
     private final float[] startX = {0};
@@ -86,7 +90,9 @@ public class MainActivity extends AppCompatActivity implements
 
         recyclerViewTodos = findViewById(R.id.recyclerViewTodos);
         recyclerViewTags = findViewById(R.id.recyclerViewTags);
+        recyclerViewStatistics = findViewById(R.id.recyclerViewStatistics);
         settingsContainer = findViewById(R.id.settingsContainer);
+        statisticsContainer = findViewById(R.id.statisticsContainer);
         textViewEmpty = findViewById(R.id.textViewEmpty);
         textViewEmptyTags = findViewById(R.id.textViewEmptyTags);
         Button buttonClearData = findViewById(R.id.buttonClearData);
@@ -128,8 +134,12 @@ public class MainActivity extends AppCompatActivity implements
         recyclerViewTags.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTags.setAdapter(tagAdapter);
 
+        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+        recyclerViewStatistics.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewStatistics.setAdapter(statisticsAdapter);
+
         fabAdd.setOnClickListener(v -> {
-            if (currentView == 0) {
+            if (currentView == 0 || currentView == 2) {
                 showAddTodoDialog();
             } else {
                 showAddTagDialog();
@@ -146,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements
         loadTags();
         syncTagsWithTodos();
         todoAdapter.updateTodos(todos);
+        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+        recyclerViewStatistics.setAdapter(statisticsAdapter);
         updateView();
     }
 
@@ -219,18 +231,28 @@ public class MainActivity extends AppCompatActivity implements
             textViewEmpty.setVisibility(todos.isEmpty() ? View.VISIBLE : View.GONE);
             recyclerViewTags.setVisibility(View.GONE);
             textViewEmptyTags.setVisibility(View.GONE);
+            statisticsContainer.setVisibility(View.GONE);
             settingsContainer.setVisibility(View.GONE);
         } else if (currentView == 1) {
             recyclerViewTodos.setVisibility(View.GONE);
             textViewEmpty.setVisibility(View.GONE);
             recyclerViewTags.setVisibility(View.VISIBLE);
             textViewEmptyTags.setVisibility(tags.isEmpty() ? View.VISIBLE : View.GONE);
+            statisticsContainer.setVisibility(View.GONE);
             settingsContainer.setVisibility(View.GONE);
-        } else {
+        } else if (currentView == 2) {
             recyclerViewTodos.setVisibility(View.GONE);
             textViewEmpty.setVisibility(View.GONE);
             recyclerViewTags.setVisibility(View.GONE);
             textViewEmptyTags.setVisibility(View.GONE);
+            statisticsContainer.setVisibility(View.VISIBLE);
+            settingsContainer.setVisibility(View.GONE);
+        } else if (currentView == 3) {
+            recyclerViewTodos.setVisibility(View.GONE);
+            textViewEmpty.setVisibility(View.GONE);
+            recyclerViewTags.setVisibility(View.GONE);
+            textViewEmptyTags.setVisibility(View.GONE);
+            statisticsContainer.setVisibility(View.GONE);
             settingsContainer.setVisibility(View.VISIBLE);
         }
     }
@@ -243,8 +265,10 @@ public class MainActivity extends AppCompatActivity implements
         } else if (itemId == R.id.nav_tags) {
             currentView = 1;
             loadTags();
-        } else if (itemId == R.id.nav_settings) {
+        } else if (itemId == R.id.nav_by_tag) {
             currentView = 2;
+        } else if (itemId == R.id.nav_settings) {
+            currentView = 3;
         }
         updateView();
         
@@ -277,6 +301,10 @@ public class MainActivity extends AppCompatActivity implements
         }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         todoAdapter.updateTodos(todos);
+        if (statisticsAdapter != null) {
+            statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+            recyclerViewStatistics.setAdapter(statisticsAdapter);
+        }
         saveTodos();
         updateEmptyState();
 
@@ -305,15 +333,26 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onEditClick(Todo todo, int position) {
-        AddTodoDialog dialog = new AddTodoDialog(this, this::onTodoSaved, todo);
+        AddTodoDialog dialog = new AddTodoDialog(this, savedTodo -> {
+            onTodoSaved(savedTodo);
+            statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+            recyclerViewStatistics.setAdapter(statisticsAdapter);
+        }, todo);
         dialog.show();
     }
 
     @Override
     public void onDeleteClick(Todo todo, int position) {
-        todos.remove(position);
+        for (int i = 0; i < todos.size(); i++) {
+            if (todos.get(i).getId().equals(todo.getId())) {
+                todos.remove(i);
+                break;
+            }
+        }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         todoAdapter.updateTodos(todos);
+        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+        recyclerViewStatistics.setAdapter(statisticsAdapter);
         saveTodos();
         updateEmptyState();
 

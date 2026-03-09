@@ -28,6 +28,14 @@
             android:name=".receivers.NotificationReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".receivers.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

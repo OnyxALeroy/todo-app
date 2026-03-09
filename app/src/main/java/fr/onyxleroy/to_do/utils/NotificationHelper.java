@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 
 import java.util.Calendar;
+import java.util.List;
 
 import fr.onyxleroy.to_do.Todo;
 import fr.onyxleroy.to_do.receivers.NotificationReceiver;
@@ -41,6 +42,18 @@ public class NotificationHelper {
                     triggerTime = getNextOccurrence(triggerTime, todo.getRepeatType());
                 }
                 todo.setDateTimeMillis(triggerTime);
+                
+                List<Todo> allTodos = TodoStorageManager.loadTodos(context);
+                if (allTodos != null) {
+                    for (int i = 0; i < allTodos.size(); i++) {
+                        if (allTodos.get(i).getId().equals(todo.getId())) {
+                            allTodos.set(i, todo);
+                            break;
+                        }
+                    }
+                    TodoStorageManager.saveTodos(context, allTodos);
+                }
+                
                 setExactAlarm(alarmManager, triggerTime, pendingIntent);
             }
         }

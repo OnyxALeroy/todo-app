@@ -144,7 +144,10 @@ public class AddTodoDialog {
                     return;
                 }
 
-                if (selectedDateTime.getTimeInMillis() <= System.currentTimeMillis()) {
+                boolean isRepeating = selectedRepeatType != null && selectedRepeatType != Todo.RepeatType.NONE;
+                long selectedTime = selectedDateTime.getTimeInMillis();
+                
+                if (!isRepeating && selectedTime <= System.currentTimeMillis()) {
                     Toast.makeText(context, "Please select a future date and time", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -171,9 +174,6 @@ public class AddTodoDialog {
         });
 
         dialog.show();
-        
-        editTextTitle.clearFocus();
-        editTextDescription.clearFocus();
     }
 
     private void showDateTimePicker(Button button) {
@@ -192,6 +192,7 @@ public class AddTodoDialog {
                                 selectedDateTime.set(Calendar.SECOND, 0);
                                 updateDateTimeButtonText(button);
                                 hideKeyboard();
+                                button.requestFocus();
                             },
                             selectedDateTime.get(Calendar.HOUR_OF_DAY),
                             selectedDateTime.get(Calendar.MINUTE),
