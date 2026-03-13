@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements
         recyclerViewTags.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTags.setAdapter(tagAdapter);
 
-        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+        statisticsAdapter = new StatisticsAdapter(this, tags, todos, this);
         recyclerViewStatistics.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewStatistics.setAdapter(statisticsAdapter);
 
@@ -156,8 +156,14 @@ public class MainActivity extends AppCompatActivity implements
         loadTags();
         syncTagsWithTodos();
         todoAdapter.updateTodos(todos);
-        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
-        recyclerViewStatistics.setAdapter(statisticsAdapter);
+        if (statisticsAdapter != null) {
+            statisticsAdapter.updateData(tags, todos);
+            recyclerViewStatistics.setAdapter(statisticsAdapter);
+            updateView();
+        } else {
+            statisticsAdapter = new StatisticsAdapter(this, tags, todos, this);
+            recyclerViewStatistics.setAdapter(statisticsAdapter);
+        }
         updateView();
     }
 
@@ -302,8 +308,7 @@ public class MainActivity extends AppCompatActivity implements
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         todoAdapter.updateTodos(todos);
         if (statisticsAdapter != null) {
-            statisticsAdapter = new StatisticsAdapter(tags, todos, this);
-            recyclerViewStatistics.setAdapter(statisticsAdapter);
+            statisticsAdapter.updateData(tags, todos);
         }
         saveTodos();
         updateEmptyState();
@@ -335,8 +340,11 @@ public class MainActivity extends AppCompatActivity implements
     public void onEditClick(Todo todo, int position) {
         AddTodoDialog dialog = new AddTodoDialog(this, savedTodo -> {
             onTodoSaved(savedTodo);
-            statisticsAdapter = new StatisticsAdapter(tags, todos, this);
+        if (statisticsAdapter != null) {
+            statisticsAdapter.updateData(tags, todos);
             recyclerViewStatistics.setAdapter(statisticsAdapter);
+            updateView();
+        }
         }, todo);
         dialog.show();
     }
@@ -351,8 +359,11 @@ public class MainActivity extends AppCompatActivity implements
         }
         Collections.sort(todos, Comparator.comparingLong(Todo::getDateTimeMillis));
         todoAdapter.updateTodos(todos);
-        statisticsAdapter = new StatisticsAdapter(tags, todos, this);
-        recyclerViewStatistics.setAdapter(statisticsAdapter);
+        if (statisticsAdapter != null) {
+            statisticsAdapter.updateData(tags, todos);
+            recyclerViewStatistics.setAdapter(statisticsAdapter);
+            updateView();
+        }
         saveTodos();
         updateEmptyState();
 

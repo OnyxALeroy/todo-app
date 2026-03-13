@@ -1,5 +1,6 @@
 package fr.onyxleroy.to_do.adapters;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
@@ -18,13 +19,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import fr.onyxleroy.to_do.R;
 import fr.onyxleroy.to_do.Tag;
 import fr.onyxleroy.to_do.Todo;
+import fr.onyxleroy.to_do.utils.FoldedTagsManager;
 
 public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_HEADER = 0;
@@ -33,13 +37,29 @@ public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private final List<Object> items = new ArrayList<>();
     private final TodoAdapter.OnTodoClickListener listener;
+    private final Context context;
+    private final Set<String> foldedTags = new HashSet<>();
+    private List<Tag> tags;
+    private List<Todo> todos;
 
-    public StatisticsAdapter(List<Tag> tags, List<Todo> todos, TodoAdapter.OnTodoClickListener listener) {
+    public StatisticsAdapter(Context context, List<Tag> tags, List<Todo> todos, TodoAdapter.OnTodoClickListener listener) {
+        this.context = context;
         this.listener = listener;
-        buildItemsList(tags, todos);
+        this.tags = tags;
+        this.todos = todos;
+        this.foldedTags.addAll(FoldedTagsManager.loadFoldedTags(context));
+        buildItemsList();
     }
 
-    private void buildItemsList(List<Tag> tags, List<Todo> todos) {
+    public void updateData(List<Tag> tags, List<Todo> todos) {
+        this.tags = tags;
+        this.todos = todos;
+        foldedTags.clear();
+        foldedTags.addAll(FoldedTagsManager.loadFoldedTags(context));
+        buildItemsList();
+    }
+
+    private void buildItemsList() {
         items.clear();
 
         List<Tag> sortedTags = new ArrayList<>();
@@ -67,18 +87,29 @@ public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             }
         }
 
-        if (!untaggedTodos.isEmpty()) {
+        boolean untaggedFolded = foldedTags.contains(UNTAGGED_HEADER);
+        if (!untaggedFolded && !untaggedTodos.isEmpty()) {
             items.add(UNTAGGED_HEADER);
             items.addAll(untaggedTodos);
+        } else if (!untaggedTodos.isEmpty()) {
+            items.add(UNTAGGED_HEADER);
         }
 
         for (Tag tag : sortedTags) {
             List<Todo> tagTodos = todosByTag.get(tag.getId());
             if (tagTodos != null && !tagTodos.isEmpty()) {
+                boolean isFolded = foldedTags.contains(tag.getId());
                 items.add(tag);
-                items.addAll(tagTodos);
+                if (!isFolded) {
+                    items.addAll(tagTodos);
+                }
             }
         }
+    }
+
+    public void refreshFoldedState() {
+        foldedTags.clear();
+        foldedTags.addAll(FoldedTagsManager.loadFoldedTags(context));
     }
 
     @Override
@@ -107,7 +138,7 @@ public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HeaderViewHolder) {
-            ((HeaderViewHolder) holder).bind(items.get(position));
+            ((HeaderViewHolder) holder).bind(items.get(position), position);
         } else if (holder instanceof TodoViewHolder) {
             ((TodoViewHolder) holder).bind((Todo) items.get(position), position);
         }
@@ -122,18 +153,25 @@ public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         private TextView textViewTagName;
         private View colorIndicator;
         private View headerContainer;
+        private TextView textViewExpandIcon;
 
         public HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTagName = itemView.findViewById(R.id.textViewTagName);
             colorIndicator = itemView.findViewById(R.id.colorIndicator);
             headerContainer = itemView.findViewById(R.id.headerContainer);
+            textViewExpandIcon = itemView.findViewById(R.id.textViewExpandIcon);
         }
 
-        public void bind(Object header) {
+        public void bind(Object header, int position) {
+            String tagId = null;
+            boolean isFolded = false;
+
             if (header instanceof String && UNTAGGED_HEADER.equals(header)) {
                 textViewTagName.setText(itemView.getContext().getString(R.string.untagged));
                 colorIndicator.setVisibility(View.GONE);
+                tagId = UNTAGGED_HEADER;
+                isFolded = foldedTags.contains(UNTAGGED_HEADER);
             } else if (header instanceof Tag) {
                 Tag tag = (Tag) header;
                 textViewTagName.setText(tag.getName());
@@ -143,12 +181,31 @@ public class StatisticsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 background.setCornerRadius(8 * itemView.getResources().getDisplayMetrics().density);
                 background.setColor(tag.getColor());
                 colorIndicator.setBackground(background);
+                tagId = tag.getId();
+                isFolded = foldedTags.contains(tag.getId());
             }
+
+            textViewExpandIcon.setText(isFolded ? "\u25B6" : "\u25BC");
 
             GradientDrawable bgDrawable = new GradientDrawable();
             bgDrawable.setShape(GradientDrawable.RECTANGLE);
             bgDrawable.setColor(0xFFE0E0E0);
             headerContainer.setBackground(bgDrawable);
+
+            final String finalTagId = tagId;
+            headerContainer.setOnClickListener(v -> {
+                if (finalTagId != null) {
+                    boolean currentlyFolded = foldedTags.contains(finalTagId);
+                    FoldedTagsManager.setFolded(context, finalTagId, !currentlyFolded);
+                    if (!currentlyFolded) {
+                        foldedTags.add(finalTagId);
+                    } else {
+                        foldedTags.remove(finalTagId);
+                    }
+                    buildItemsList();
+                    notifyDataSetChanged();
+                }
+            });
         }
     }
 

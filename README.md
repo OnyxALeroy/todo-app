@@ -4,13 +4,13 @@ A native Android application for managing personal tasks with scheduled reminder
 
 ## Features
 
-- **Create Todos**: Add new tasks with title, description, and scheduled date/time
-- **Edit Todos**: Modify existing task details
-- **Delete Todos**: Remove unwanted tasks
-- **Scheduled Notifications**: Receive reminders at the specified date and time
-- **Recurring Tasks**: Set tasks to repeat hourly, daily, weekly, monthly, or yearly
-- **Local Storage**: Tasks persist locally using Android's file storage
-- **French Localization**: Full French language support (fr-FR)
+- **Create Todos**: Add new tasks with title, description, and scheduled date/time ;
+- **Edit Todos**: Modify existing task details ;
+- **Delete Todos**: Remove unwanted tasks ;
+- **Scheduled Notifications**: Receive reminders at the specified date and time ; 
+- **Recurring Tasks**: Set tasks to repeat hourly, daily, weekly, monthly, or yearly ;
+- **Local Storage**: Tasks persist locally using Android's file storage ;
+- **French Localization**: Full French and English language support (fr-FR ; en-EN).
 
 ## Project Structure
 
@@ -48,6 +48,7 @@ The `Todo` class contains:
 - `dateTimeMillis`: Scheduled reminder time in milliseconds
 - `completed`: Completion status flag
 - `repeatType`: Recurrence type (NONE, HOURLY, DAILY, WEEKLY, MONTHLY, YEARLY)
+- `tags`: An array of tags, potentially empty
 
 ### Storage
 

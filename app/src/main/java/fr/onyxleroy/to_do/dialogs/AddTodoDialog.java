@@ -37,6 +37,8 @@ public class AddTodoDialog {
     private List<Tag> availableTags;
     private List<Tag> selectedTags = new ArrayList<>();
     private AlertDialog dialog;
+    private EditText editTextTitle;
+    private EditText editTextDescription;
 
     public interface OnTodoSavedListener {
         void onTodoSaved(Todo todo);
@@ -74,8 +76,8 @@ public class AddTodoDialog {
     public void show() {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_todo, null);
 
-        EditText editTextTitle = dialogView.findViewById(R.id.editTextTitle);
-        EditText editTextDescription = dialogView.findViewById(R.id.editTextDescription);
+        editTextTitle = dialogView.findViewById(R.id.editTextTitle);
+        editTextDescription = dialogView.findViewById(R.id.editTextDescription);
         Button buttonSelectDateTime = dialogView.findViewById(R.id.buttonSelectDateTime);
         Spinner spinnerRepeat = dialogView.findViewById(R.id.spinnerRepeat);
         LinearLayout tagsContainer = dialogView.findViewById(R.id.tagsContainer);
@@ -102,6 +104,7 @@ public class AddTodoDialog {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedRepeatType = Todo.RepeatType.fromValue(position);
+                clearFocusAndHideKeyboard();
             }
 
             @Override
@@ -120,7 +123,10 @@ public class AddTodoDialog {
 
         updateDateTimeButtonText(buttonSelectDateTime);
 
-        buttonSelectDateTime.setOnClickListener(v -> showDateTimePicker(buttonSelectDateTime));
+        buttonSelectDateTime.setOnClickListener(v -> {
+            clearFocusAndHideKeyboard();
+            showDateTimePicker(buttonSelectDateTime);
+        });
 
         updateTagsContainer(tagsContainer);
 
@@ -313,5 +319,15 @@ public class AddTodoDialog {
         if (dialog == null || dialog.getWindow() == null) return;
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(dialog.getWindow().getDecorView().getWindowToken(), 0);
+    }
+
+    private void clearFocusAndHideKeyboard() {
+        if (editTextTitle != null) {
+            editTextTitle.clearFocus();
+        }
+        if (editTextDescription != null) {
+            editTextDescription.clearFocus();
+        }
+        hideKeyboard();
     }
 }
