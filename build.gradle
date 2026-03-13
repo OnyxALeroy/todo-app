@@ -2,3 +2,17 @@
 plugins {
     id 'com.android.application' version '8.13.2' apply false
 }
+
+// Load local.properties for signing config
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
+ext {
+    keystorePath = localProperties.getProperty('keystore.path', '')
+    keystorePassword = localProperties.getProperty('keystore.password', '')
+    keystoreAlias = localProperties.getProperty('keystore.alias', '')
+    keystoreAliasPassword = localProperties.getProperty('keystore.alias_password', '')
+}
