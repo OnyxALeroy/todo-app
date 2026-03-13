@@ -10,14 +10,36 @@ android {
         applicationId "fr.onyxleroy.to_do"
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.1.0"
+    }
+
+    signingConfigs {
+        release {
+            // Place your keystore in app/keystore/ or adjust path as needed
+            // Then add these properties to local.properties:
+            //   keystore.path=keystore.jks
+            //   keystore.password=your_password
+            //   keystore.alias=your_alias
+            //   keystore.alias_password=your_alias_password
+            
+            def keystorePath = project.hasProperty('keystore.path') ? project.property('keystore.path') : null
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword project.property('keystore.password')
+                keyAlias project.property('keystore.alias')
+                keyPassword project.property('keystore.alias_password')
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (project.hasProperty('keystore.path')) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

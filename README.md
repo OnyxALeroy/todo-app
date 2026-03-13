@@ -1,32 +1,49 @@
 # To-Do Android Application
 
+<p align="center">
+  <strong>Version 1.0 - First Release</strong>
+</p>
+
 A native Android application for managing personal tasks with scheduled reminder notifications.
 
 ## Features
 
-- **Create Todos**: Add new tasks with title, description, and scheduled date/time ;
-- **Edit Todos**: Modify existing task details ;
-- **Delete Todos**: Remove unwanted tasks ;
-- **Scheduled Notifications**: Receive reminders at the specified date and time ; 
-- **Recurring Tasks**: Set tasks to repeat hourly, daily, weekly, monthly, or yearly ;
-- **Local Storage**: Tasks persist locally using Android's file storage ;
-- **French Localization**: Full French and English language support (fr-FR ; en-EN).
+- **Create Todos**: Add new tasks with title, description, scheduled date/time, and tags
+- **Edit Todos**: Modify existing task details
+- **Delete Todos**: Remove unwanted tasks
+- **Mark Todos Complete**: Track task completion status
+- **Tags**: Create colored tags to organize and categorize tasks
+- **Statistics View**: View todos grouped by tag with collapsible sections
+- **Scheduled Notifications**: Receive reminders at the specified date and time
+- **Recurring Tasks**: Set tasks to repeat hourly, daily, weekly, monthly, or yearly
+- **Local Storage**: Tasks persist locally using Android's file storage
+- **Navigation Drawer**: Easy access to all app sections (Tasks, Tags, Statistics, Settings)
+- **Language Support**: Full French and English localization with in-app language switching
+- **Clear Data**: Option to delete all tasks and tags from settings
 
 ## Project Structure
 
 ```
 app/src/main/java/fr/onyxleroy/to_do/
 ├── Todo.java                      # Data model for todo items
-├── MainActivity.java              # Main activity with todo list
+├── Tag.java                       # Data model for tags
+├── MainActivity.java              # Main activity with navigation and views
+├── LocaleHelper.java              # Language localization helper
 ├── adapters/
-│   └── TodoAdapter.java           # RecyclerView adapter for displaying todos
+│   ├── TodoAdapter.java           # RecyclerView adapter for displaying todos
+│   ├── TagAdapter.java            # RecyclerView adapter for displaying tags
+│   └── StatisticsAdapter.java    # Adapter for todos grouped by tag
 ├── dialogs/
-│   └── AddTodoDialog.java         # Dialog for adding/editing todos
+│   ├── AddTodoDialog.java         # Dialog for adding/editing todos
+│   └── AddTagDialog.java          # Dialog for adding/editing tags
 ├── receivers/
-│   └── NotificationReceiver.java  # BroadcastReceiver for handling notifications
+│   ├── NotificationReceiver.java  # BroadcastReceiver for handling notifications
+│   └── BootReceiver.java          # BroadcastReceiver for rescheduling alarms after reboot
 └── utils/
     ├── NotificationHelper.java    # Utility for scheduling/canceling notifications
-    └── TodoStorageManager.java    # Local file storage management
+    ├── TodoStorageManager.java    # Local file storage management for todos
+    ├── TagStorageManager.java     # Local file storage management for tags
+    └── FoldedTagsManager.java     # Manages collapsed/expanded state of tag groups
 ```
 
 ## Technical Details
@@ -48,7 +65,12 @@ The `Todo` class contains:
 - `dateTimeMillis`: Scheduled reminder time in milliseconds
 - `completed`: Completion status flag
 - `repeatType`: Recurrence type (NONE, HOURLY, DAILY, WEEKLY, MONTHLY, YEARLY)
-- `tags`: An array of tags, potentially empty
+- `tags`: A list of tags assigned to the task
+
+The `Tag` class contains:
+- `id`: Unique UUID identifier
+- `name`: Tag name (required)
+- `color`: Tag color (integer value)
 
 ### Storage
 
@@ -60,6 +82,7 @@ Tasks are serialized and saved locally using `ObjectOutputStream` to a file name
 - Requires `SCHEDULE_EXACT_ALARM` permission on Android 12+
 - Creates a notification channel on Android 8.0+
 - Notifications open the app when tapped
+- Automatically reschedules after device reboot via `BootReceiver`
 
 ### Recurring Tasks
 
@@ -76,6 +99,15 @@ Repeat options:
 - **Weekly**: Repeats every week at the same time
 - **Monthly**: Repeats every month at the same time
 - **Yearly**: Repeats every year at the same time
+
+### Navigation & Views
+
+The app uses a navigation drawer with four main sections:
+
+1. **Tasks** (Home): View all todos sorted by scheduled date/time
+2. **Tags**: Manage tags (create, edit, delete) with custom colors
+3. **By Tag**: View todos grouped by tag with collapsible sections
+4. **Settings**: Language selection and clear all data option
 
 ## Installation
 
